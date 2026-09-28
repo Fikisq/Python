@@ -1,0 +1,14 @@
+[run]
+branch = True
+include =
+    src/client.py
+    src/server.py
+
+[report]
+show_missing = True
+exclude_also =
+    if __name__ == "__main__":
+    def show\(
+    def create_and_update_data\(
+    def show_error_and_delete_data\(
+    def main\(

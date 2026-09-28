@@ -49,6 +49,7 @@ def handle_connection(
         connection: socket.socket,
         address: tuple[str, int],
         model: DataModel,
+        log_responses: bool,
 ) -> None:
     operation_code = 0
     try:
@@ -72,16 +73,17 @@ def handle_connection(
     response_data = make_response(operation_code, response)
     connection.sendall(response_data)
 
-    response_text = json.dumps(response, ensure_ascii=False)
-    client_address = f"{address[0]}:{address[1]}"
-    print(
-        f"Ответ RPC: клиент={client_address}, "
-        f"операция={operation_code}, тело={response_text}",
-        flush=True,
-    )
+    if log_responses:
+        response_text = json.dumps(response, ensure_ascii=False)
+        client_address = f"{address[0]}:{address[1]}"
+        print(
+            f"Ответ RPC: клиент={client_address}, "
+            f"операция={operation_code}, тело={response_text}",
+            flush=True,
+        )
 
 
-def serve() -> None:
+def serve(log_responses: bool = True) -> None:
     model = DataModel()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
@@ -93,7 +95,12 @@ def serve() -> None:
         while True:
             connection, address = server.accept()
             with connection:
-                handle_connection(connection, address, model)
+                handle_connection(
+                    connection,
+                    address,
+                    model,
+                    log_responses,
+                )
 
 
 if __name__ == "__main__":
