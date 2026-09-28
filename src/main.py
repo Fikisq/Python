@@ -50,10 +50,12 @@ class DataModel:
             raise ValueError(f"Ключ {key} уже существует")
 
     @staticmethod
-    def _update(rows: list, key: int, changes: dict) -> tuple:
+    def _update[T](rows: list[T], key: int, changes: dict) -> T:
         index = DataModel._index(rows, key)
-        rows[index] = rows[index]._replace(**changes)
-        return rows[index]
+        old_row = rows[index]
+        new_row = old_row._replace(**changes)
+        rows[index] = new_row
+        return new_row
 
     def create_agent(self, key: int, timestamp: int) -> Agent:
         self._ensure_key_is_free(self.agents, key)
@@ -117,23 +119,24 @@ class DataModel:
     def get_recent_cache(
             self, now: int | None = None,
     ) -> list[tuple[str, int | None]]:
-        current_time = int(time.time()) if now is None else now
+        if now is None:
+            current_time = int(time.time())
+        else:
+            current_time = now
         boundary = current_time - SIX_MINUTES
         rows: list[tuple[str, int | None]] = []
 
         for command in self.commands:
             if command.timestamp < boundary:
                 continue
-            matches = [
-                result
-                for result in self.results
-                if result.command == command.key
-            ]
+            matches = []
+            for result in self.results:
+                if result.command == command.key:
+                    matches.append(result)
             if matches:
-                rows.extend(
-                    (command.tags, result.cache_hit)
-                    for result in matches
-                )
+                for result in matches:
+                    row = (command.tags, result.cache_hit)
+                    rows.append(row)
             else:
                 rows.append((command.tags, None))
         return rows
@@ -169,7 +172,10 @@ def run_line(model: DataModel, line: str) -> object:
     if name not in OPERATIONS:
         raise ValueError(f"Неизвестная операция: {name}")
 
-    arguments = json.loads(json_text) if json_text.strip() else {}
+    if json_text.strip():
+        arguments = json.loads(json_text)
+    else:
+        arguments = {}
     if not isinstance(arguments, dict):
         raise ValueError("Аргументы должны быть объектом JSON {...}")
     return getattr(model, name)(**arguments)
