@@ -7,12 +7,16 @@ from hypothesis import settings, strategies as st
 from hypothesis.stateful import RuleBasedStateMachine, rule
 
 
-ROOT = Path(__file__).parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+def load_project():
+    src_dir = Path(__file__).parents[1] / "src"
+    sys.path.insert(0, str(src_dir))
+    from client import RpcClient, RpcError
+    from main import DataModel, to_json
+    from server import serve
+    return RpcClient, RpcError, DataModel, to_json, serve
 
-from client import RpcClient, RpcError  # noqa: E402
-from main import DataModel, to_json  # noqa: E402
-from server import serve  # noqa: E402
+
+RpcClient, RpcError, DataModel, to_json, serve = load_project()
 
 
 KEYS = st.integers(min_value=0, max_value=4)
