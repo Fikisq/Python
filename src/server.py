@@ -7,6 +7,7 @@ from main import DataModel, OPERATIONS, to_json
 HOST = "127.0.0.1"
 PORT = 5052
 
+
 def receive_exactly(connection: socket.socket, size: int) -> bytes:
     data = b""
     while len(data) < size:
@@ -75,7 +76,7 @@ def handle_connection(
 
     if log_responses:
         response_text = json.dumps(response, ensure_ascii=False)
-        client_address = f"{address[0]}:{address[1]}"
+        client_address = str(address[0]) + ":" + str(address[1])
         print(
             f"Ответ RPC: клиент={client_address}, "
             f"операция={operation_code}, тело={response_text}",
@@ -90,7 +91,8 @@ def serve(log_responses: bool = True) -> None:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((HOST, PORT))
         server.listen()
-        print(f"RPC-сервер запущен на {HOST}:{PORT}", flush=True)
+        server_address = HOST + ":" + str(PORT)
+        print(f"RPC-сервер запущен на {server_address}", flush=True)
 
         while True:
             connection, address = server.accept()

@@ -10,9 +10,9 @@ from hypothesis.stateful import RuleBasedStateMachine, rule
 ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from client import RpcClient, RpcError
-from main import DataModel, to_json
-from server import serve
+from client import RpcClient, RpcError  # noqa: E402
+from main import DataModel, to_json  # noqa: E402
+from server import serve  # noqa: E402
 
 
 KEYS = st.integers(min_value=0, max_value=4)
@@ -67,6 +67,8 @@ def run_server() -> None:
 
 def start_server() -> None:
     global server_thread
+    if server_thread is not None:
+        return
     server_thread = threading.Thread(
         target=run_server,
         daemon=True,
@@ -81,10 +83,13 @@ def start_server() -> None:
         except OSError:
             time.sleep(0.01)
     raise RuntimeError("RPC-сервер не запустился")
+
+
 @settings(max_examples=30, stateful_step_count=30, deadline=None)
 class RpcStateMachine(RuleBasedStateMachine):
     def __init__(self) -> None:
         super().__init__()
+        start_server()
         if server_error is not None:
             raise RuntimeError(f"RPC-сервер остановился: {server_error!r}")
         self.client = RpcClient()
@@ -179,6 +184,4 @@ class RpcStateMachine(RuleBasedStateMachine):
 
 
 class TestRpcStateMachine(RpcStateMachine.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        start_server()
+    pass

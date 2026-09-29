@@ -120,7 +120,7 @@ class RpcClient:
 
 def show(name: str, value: object) -> None:
     text = json.dumps(value, ensure_ascii=False, indent=2)
-    print(f"\n{name}:\n{text}")
+    print("\n" + name + ":\n" + text)
 
 
 def create_and_update_data(client: RpcClient, now: int) -> None:
@@ -162,7 +162,7 @@ def show_error_and_delete_data(client: RpcClient) -> None:
     try:
         client.delete_agent(1)
     except RpcError as error:
-        print(f"\nПример ошибки:\n{error}")
+        print("\nПример ошибки:\n" + str(error))
 
     show("delete_result", client.delete_result(100))
     show("delete_command", client.delete_command(10))

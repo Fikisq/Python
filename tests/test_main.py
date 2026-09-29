@@ -5,7 +5,7 @@ from src.main import Agent, DataModel, run_line
 
 
 class DataModelTests(unittest.TestCase):
-    def setUp(self) -> None:
+    def make_model(self) -> None:
         self.model = DataModel()
         self.model.create_agent(key=1, timestamp=1000)
 
@@ -43,16 +43,19 @@ class DataModelTests(unittest.TestCase):
         )
 
     def test_records_are_tuples(self) -> None:
+        self.make_model()
         self.assertIsInstance(self.model.get_agents()[0], tuple)
         self.assertEqual(self.model.get_agents(), [Agent(1, 1000)])
 
     def test_agent_crud(self) -> None:
+        self.make_model()
         updated = self.model.update_agent(1, timestamp=1001)
         self.assertEqual(updated.timestamp, 1001)
         self.assertEqual(self.model.delete_agent(1), updated)
         self.assertEqual(self.model.get_agents(), [])
 
     def test_duplicate_and_missing_keys(self) -> None:
+        self.make_model()
         with self.assertRaises(ValueError):
             self.model.create_agent(key=1, timestamp=1000)
         with self.assertRaises(KeyError):
@@ -61,6 +64,7 @@ class DataModelTests(unittest.TestCase):
             self.model.update_agent(1, unknown=2)
 
     def test_command_crud_and_agent_relation(self) -> None:
+        self.make_model()
         self.create_command()
         updated = self.model.update_command(10, processing=1)
         self.assertEqual(updated.processing, 1)
@@ -72,6 +76,7 @@ class DataModelTests(unittest.TestCase):
         self.assertEqual(self.model.get_commands(), [])
 
     def test_foreign_keys_are_required_on_create(self) -> None:
+        self.make_model()
         with self.assertRaises(KeyError):
             self.model.create_command(
                 key=10,
@@ -87,6 +92,7 @@ class DataModelTests(unittest.TestCase):
             self.create_result(command=999)
 
     def test_result_crud_and_command_relation(self) -> None:
+        self.make_model()
         self.create_command()
         self.create_result()
         updated = self.model.update_result(100, duration=30)
@@ -99,6 +105,7 @@ class DataModelTests(unittest.TestCase):
         self.assertEqual(self.model.get_results(), [])
 
     def test_recent_cache_uses_left_join_and_time_boundary(self) -> None:
+        self.make_model()
         self.create_command(key=10, timestamp=640, tags="boundary")
         self.create_command(key=11, timestamp=639, tags="old")
         self.create_command(key=12, timestamp=900, tags="without-result")
@@ -111,6 +118,7 @@ class DataModelTests(unittest.TestCase):
         )
 
     def test_run_line(self) -> None:
+        self.make_model()
         result = run_line(self.model, "get_agents")
         self.assertEqual(result, [Agent(1, 1000)])
         with self.assertRaises(ValueError):
