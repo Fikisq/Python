@@ -1,6 +1,7 @@
 import sys
 import threading
 import time
+import unittest
 from pathlib import Path
 
 from hypothesis import settings, strategies as st
@@ -189,3 +190,7 @@ class RpcStateMachine(RuleBasedStateMachine):
 
 class TestRpcStateMachine(RpcStateMachine.TestCase):
     pass
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
